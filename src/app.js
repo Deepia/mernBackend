@@ -2,9 +2,11 @@ require("dotenv").config();
 const express= require("express");
 require("./db/conn");
 const Register=require("./models/registers");
+const auth=require("./middleware/auth");
 const app=express();
 const path=require("path");
 const hbs=require("hbs");
+const cookieParser=require("cookie-parser");
 const port=process.env.PORT || 3000;
 const static_path=path.join(__dirname,"../public")
 const template_path=path.join(__dirname,"../templates/views");
@@ -13,6 +15,7 @@ console.log(static_path);
 app.use(express.json());
 app.use(express.urlencoded({extended:false}));
 app.use(express.static(static_path));
+app.use(cookieParser());
 app.set("view engine","hbs");
 app.set("views",template_path);
 hbs.registerPartials(partial_path);
@@ -44,7 +47,11 @@ app.get("",(req,res)=>{
     res.render("index");
 })
 app.get("/about",(req,res)=>{
+    console.log(`Cookie value: ${req.cookies.jwt}`)
     res.render("about");
+})
+app.get("/secret",auth,(req,res)=>{
+    res.render("secret");
 })
 app.get("/weather",(req,res)=>{
     res.render("weather");
@@ -66,6 +73,9 @@ app.post("/register",async(req,res)=>{
 
            });
            const token=await registerUser.generateAuthToken();
+           res.cookie("jwt",token,{
+               expires:new Date(Date.now()+120000)
+           });
            const savedData=await registerUser.save();
            res.status(201).render("index");
         }
@@ -88,6 +98,10 @@ app.post("/login",async(req,res)=>{
         if(matched){
             const token=await userDetails.generateAuthToken();
             console.log("login token: "+token);
+            //for storing the token in cookies
+            res.cookie("jwt",token,{
+                expires:new Date(Date.now()+600000)
+            });
             res.status(201).render("index");
         }
         else{
