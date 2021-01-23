@@ -7,7 +7,9 @@ const auth=async(req,res,next)=>{
           const verify=jwt.verify(token,"munameisdeepakkumarsharma");
           console.log(verify);
           const user=await Register.findOne({_id:verify._id});
-          console.log(user);
+          //console.log(user);
+          req.user=user;
+          req.token=token;
           next();
     }
     catch(err){

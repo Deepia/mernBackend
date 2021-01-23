@@ -59,6 +59,28 @@ app.get("/weather",(req,res)=>{
 app.get("/login",(req,res)=>{
     res.render("login");
 })
+app.get("/logout",auth,async(req,res)=>{
+    try{
+        console.log("delete start");
+        //for delete a single device for logout single device
+        
+        // req.user.tokens=req.user.tokens.filter((currentElement)=>{
+        //     return currentElement.token !== req.token;
+        // })
+
+        //for logout all device
+        req.user.tokens=[];
+        console.log("delete end");
+        res.clearCookie("jwt");
+        await req.user.save();
+        console.log("logout done");
+        res.render("login");
+    }
+    catch(err){
+        res.status(401).send(err);
+    }
+    
+})
 
 app.post("/register",async(req,res)=>{
     try{
